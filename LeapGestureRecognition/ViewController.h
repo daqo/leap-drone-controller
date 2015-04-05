@@ -29,6 +29,7 @@
 @property (weak) IBOutlet NSTextField *gestureType;
 
 @property (nonatomic, strong) DeviceController* deviceController;
+@property (weak) IBOutlet NSTextField *batteryLabel;
 
 
 @end

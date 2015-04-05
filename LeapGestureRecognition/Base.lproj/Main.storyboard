@@ -808,10 +808,19 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="rM8-4e-eTR">
+                                <rect key="frame" x="32" y="389" width="38" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="xwY-q6-XhD">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="backGestureStatus" destination="f8N-Xk-B3n" id="Vzo-67-Pq7"/>
+                        <outlet property="batteryLabel" destination="rM8-4e-eTR" id="4nj-6A-CnN"/>
                         <outlet property="downGestureStatus" destination="bva-eS-cdX" id="5I2-WN-z5d"/>
                         <outlet property="forwardGestureStatus" destination="VOS-Jf-kqa" id="j38-J0-0Fw"/>
                         <outlet property="frameView" destination="V6w-sH-9k3" id="rCa-JP-lYR"/>

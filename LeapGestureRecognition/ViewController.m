@@ -466,7 +466,7 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSString *text = [[NSString alloc] initWithFormat:@"%d%%", percent];
 //        [_batteryLabel setText:text];
-        NSLog(text);
+        self.batteryLabel.stringValue = text;
     });
 }
 
