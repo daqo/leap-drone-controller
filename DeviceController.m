@@ -44,6 +44,9 @@
 #import <libARNetworkAL/ARNetworkAL.h>
 #import <libARCommands/ARCommands.h>
 
+#define DRONE_IP "192.168.42.1"
+#define DISCOVERY_PORT 44444
+
 static const char* TAG = "DeviceController";
 
 static const int BD_NET_C2D_NONACK = 10;
@@ -148,13 +151,11 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
 
 @implementation DeviceController
 
-- (id)initWithARService:(ARService*)service
+- (id)init
 {
     self = [super init];
     if (self)
     {
-        _service = service;
-        
         // initialize deviceManager
         _alManager = NULL;
         _netManager = NULL;
@@ -196,15 +197,6 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
     BOOL failed = NO;
     
     [self registerARCommandsCallbacks];
-    
-    // need to resolve service to get the IP
-//    BOOL resolveSucceeded = [self resolveService];
-    BOOL resolveSucceeded = TRUE;
-    if (!resolveSucceeded)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "resolveService failed.");
-        failed = YES;
-    }
     
     if (!failed)
     {
@@ -309,10 +301,8 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
     
     if (!failed)
     {
-//        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
-        NSString *ip = @"192.168.42.1";
-//        int port = [(NSNetService *)_service.service port];
-        int port = 44444;
+        NSString *ip = @DRONE_IP;
+        int port = DISCOVERY_PORT;
         if (ip)
         {
             eARDISCOVERY_ERROR err = ARDISCOVERY_Connection_ControllerConnection(discoveryData, port, [ip UTF8String]);
@@ -419,8 +409,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ReceiveJsonCallback (uint8_t *dataRx, 
     if (!failed)
     {
         // Setup ARNetworkAL for Wifi.
-//        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
-        NSString *ip = @"192.168.42.1";
+        NSString *ip = @DRONE_IP;
         if (ip)
         {
             netAlError = ARNETWORKAL_Manager_InitWifiNetwork(_alManager, [ip UTF8String], _c2dPort, D2C_PORT, 1);
@@ -1016,45 +1005,4 @@ void flyingStateChangedCallback (eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATEC
         [deviceController.delegate onFlyingStateChanged:deviceController flyingState:flyingState];
     }
 }
-
-#pragma mark resolveService
-- (BOOL)resolveService
-{
-    BOOL retval = NO;
-    _resolveSemaphore = dispatch_semaphore_create(0);
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(discoveryDidResolve:) name:kARDiscoveryNotificationServiceResolved object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(discoveryDidNotResolve:) name:kARDiscoveryNotificationServiceNotResolved object:nil];
-    
-    [[ARDiscovery sharedInstance] resolveService:_service];
-    
-    // this semaphore will be signaled in discoveryDidResolve and discoveryDidNotResolve
-    dispatch_semaphore_wait(_resolveSemaphore, dispatch_time(DISPATCH_TIME_NOW, 10000000000));
-    
-    if (_service)
-    {
-        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
-        if (ip != nil)
-        {
-            retval = YES;
-        }
-    }
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:kARDiscoveryNotificationServiceResolved object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:kARDiscoveryNotificationServiceNotResolved object:nil];
-    _resolveSemaphore = nil;
-    return retval;
-}
-
-- (void)discoveryDidResolve:(NSNotification *)notification
-{
-    //_service = (ARService *)[[notification userInfo] objectForKey:kARDiscoveryServiceResolved];
-    //dispatch_semaphore_signal(_resolveSemaphore);
-}
-
-- (void)discoveryDidNotResolve:(NSNotification *)notification
-{
-    //_service = nil;
-    //dispatch_semaphore_signal(_resolveSemaphore);
-}
-
 @end

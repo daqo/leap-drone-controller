@@ -16,7 +16,7 @@
 #define MAX_RECORDING_VELOCITY 30
 #define MIN_GESTURE_FRAMES 5
 #define MIN_POSE_FRAMES 75
-#define DOWNTIME 1
+#define DOWNTIME 0.5
 #define REQUIRED_TRAINING_GESTURE_COUNT 8
 #define HIT_THRESHOLD 0.65
 
@@ -57,9 +57,8 @@
 {
     [super viewDidAppear];
     
-    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        _deviceController = [[DeviceController alloc]initWithARService:nil];
+        _deviceController = [[DeviceController alloc] init];
         [_deviceController setDelegate:self];
         BOOL connectError = [_deviceController start];
         
@@ -464,8 +463,7 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     
     // update battery label on the UI thread
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSString *text = [[NSString alloc] initWithFormat:@"%d%%", percent];
-//        [_batteryLabel setText:text];
+        NSString *text = [[NSString alloc] initWithFormat:@"Battery: %d%%", percent];
         self.batteryLabel.stringValue = text;
     });
 }
@@ -474,25 +472,25 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 {
     NSLog(@"onFlyingStateChanged");
     
-//    // on the UI thread, disable and enable buttons according to flying state
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        switch (state) {
-//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
-//                [_takeoffBt setEnabled:YES];
-//                [_landingBt setEnabled:NO];
-//                break;
-//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
-//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
-//                [_takeoffBt setEnabled:NO];
-//                [_landingBt setEnabled:YES];
-//                break;
-//            default:
-//                // in all other cases, take of and landing are not enabled
-//                [_takeoffBt setEnabled:NO];
-//                [_landingBt setEnabled:NO];
-//                break;
-//        }
-//    });
+    // on the UI thread, disable and enable buttons according to flying state
+    dispatch_async(dispatch_get_main_queue(), ^{
+        switch (state) {
+            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
+                [self.takeoffBt setEnabled:YES];
+                [self.landBt setEnabled:NO];
+                break;
+            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
+            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
+                [self.takeoffBt setEnabled:NO];
+                [self.landBt setEnabled:YES];
+                break;
+            default:
+                // in all other cases, take of and landing are not enabled
+                [self.takeoffBt setEnabled:NO];
+                [self.landBt setEnabled:NO];
+                break;
+        }
+    });
 }
 
 @end

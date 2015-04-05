@@ -31,6 +31,8 @@
 @property (nonatomic, strong) DeviceController* deviceController;
 @property (weak) IBOutlet NSTextField *batteryLabel;
 
+@property (weak) IBOutlet NSButton *takeoffBt;
+@property (weak) IBOutlet NSButton *landBt;
 
 @end
 

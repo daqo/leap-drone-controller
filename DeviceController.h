@@ -38,7 +38,7 @@ typedef struct
 /** Get the ARService instance associated with this controller. */
 @property (readonly, nonatomic, strong) ARService* service;
 
-- (id)initWithARService:(ARService*)service;
+- (id)init;
 - (BOOL)start;
 - (void)stop;
 
