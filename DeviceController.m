@@ -198,7 +198,8 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
     [self registerARCommandsCallbacks];
     
     // need to resolve service to get the IP
-    BOOL resolveSucceeded = [self resolveService];
+//    BOOL resolveSucceeded = [self resolveService];
+    BOOL resolveSucceeded = TRUE;
     if (!resolveSucceeded)
     {
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "resolveService failed.");
@@ -308,8 +309,10 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
     
     if (!failed)
     {
-        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
-        int port = [(NSNetService *)_service.service port];
+//        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
+        NSString *ip = @"192.168.42.1";
+//        int port = [(NSNetService *)_service.service port];
+        int port = 44444;
         if (ip)
         {
             eARDISCOVERY_ERROR err = ARDISCOVERY_Connection_ControllerConnection(discoveryData, port, [ip UTF8String]);
@@ -416,7 +419,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ReceiveJsonCallback (uint8_t *dataRx, 
     if (!failed)
     {
         // Setup ARNetworkAL for Wifi.
-        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
+//        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:_service];
+        NSString *ip = @"192.168.42.1";
         if (ip)
         {
             netAlError = ARNETWORKAL_Manager_InitWifiNetwork(_alManager, [ip UTF8String], _c2dPort, D2C_PORT, 1);
@@ -1043,14 +1047,14 @@ void flyingStateChangedCallback (eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATEC
 
 - (void)discoveryDidResolve:(NSNotification *)notification
 {
-    _service = (ARService *)[[notification userInfo] objectForKey:kARDiscoveryServiceResolved];
-    dispatch_semaphore_signal(_resolveSemaphore);
+    //_service = (ARService *)[[notification userInfo] objectForKey:kARDiscoveryServiceResolved];
+    //dispatch_semaphore_signal(_resolveSemaphore);
 }
 
 - (void)discoveryDidNotResolve:(NSNotification *)notification
 {
-    _service = nil;
-    dispatch_semaphore_signal(_resolveSemaphore);
+    //_service = nil;
+    //dispatch_semaphore_signal(_resolveSemaphore);
 }
 
 @end
