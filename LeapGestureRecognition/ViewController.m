@@ -53,6 +53,33 @@
     
 }
 
+- (void) viewDidAppear
+{
+    [super viewDidAppear];
+    
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        _deviceController = [[DeviceController alloc]initWithARService:nil];
+        [_deviceController setDelegate:self];
+        BOOL connectError = [_deviceController start];
+        
+        NSLog(@"connectError = %d", connectError);
+        
+        if (connectError)
+        {
+            NSLog(@"Problem in connecting to the drone");
+            return;
+        }
+    });
+}
+
+- (void) viewDidDisappear:(BOOL)animated
+{
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [_deviceController stop];
+    });
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -423,4 +450,48 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     }
 
 }
+
+#pragma mark DeviceControllerDelegate
+
+- (void)onDisconnectNetwork:(DeviceController *)deviceController
+{
+    NSLog(@"onDisconnect ...");
+}
+
+- (void)onUpdateBattery:(DeviceController *)deviceController batteryLevel:(uint8_t)percent;
+{
+    NSLog(@"onUpdateBattery");
+    
+    // update battery label on the UI thread
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *text = [[NSString alloc] initWithFormat:@"%d%%", percent];
+//        [_batteryLabel setText:text];
+    });
+}
+
+-(void)onFlyingStateChanged:(DeviceController *)deviceController flyingState:(eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE)state
+{
+    NSLog(@"onFlyingStateChanged");
+    
+//    // on the UI thread, disable and enable buttons according to flying state
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        switch (state) {
+//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
+//                [_takeoffBt setEnabled:YES];
+//                [_landingBt setEnabled:NO];
+//                break;
+//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
+//            case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
+//                [_takeoffBt setEnabled:NO];
+//                [_landingBt setEnabled:YES];
+//                break;
+//            default:
+//                // in all other cases, take of and landing are not enabled
+//                [_takeoffBt setEnabled:NO];
+//                [_landingBt setEnabled:NO];
+//                break;
+//        }
+//    });
+}
+
 @end

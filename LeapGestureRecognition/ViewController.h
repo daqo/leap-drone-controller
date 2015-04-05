@@ -9,8 +9,9 @@
 #import <Cocoa/Cocoa.h>
 #import <math.h>
 #import <float.h>
+#import "DeviceController.h"
 
-@interface ViewController : NSViewController
+@interface ViewController : NSViewController <DeviceControllerDelegate>
 @property (weak) IBOutlet NSTextField *testLabel;
 @property (weak) IBOutlet NSTextField *gestureName;
 @property (weak) IBOutlet NSTextField *yawLeftGestureStatus;
@@ -26,6 +27,8 @@
 @property (weak) IBOutlet NSTextField *trainingGestureStatus;
 @property (weak) IBOutlet NSView *frameView;
 @property (weak) IBOutlet NSTextField *gestureType;
+
+@property (nonatomic, strong) DeviceController* deviceController;
 
 
 @end
