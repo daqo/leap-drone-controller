@@ -11,6 +11,7 @@
 #import "GeometricTemplateMatcher.h"
 #import "UndistortedImageViewWithTips.h"
 #import "RawImageWithTips.h"
+#import "DroneController.h"
 
 #define MIN_RECORDING_VELOCITY 250
 #define MAX_RECORDING_VELOCITY 30
@@ -24,6 +25,7 @@
 @implementation ViewController
 {
     LeapController *_leapController;
+    DroneController *_drone;
     
     int _secondsLeftForTrainingToStart;
     NSTimer* _threeSecondsTimer;
@@ -57,6 +59,9 @@
 {
     [super viewDidAppear];
     
+    [self.takeoffBt setEnabled:FALSE];
+    [self.landBt setEnabled:FALSE];
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         _deviceController = [[DeviceController alloc] init];
         [_deviceController setDelegate:self];
@@ -68,6 +73,11 @@
         {
             NSLog(@"Problem in connecting to the drone");
             return;
+        } else {
+            _drone = [[DroneController alloc] init:_deviceController];
+            if (_drone) {
+                self.droneStatusLabel.stringValue = @"Drone: Connected";
+            }
         }
     });
 }
@@ -204,14 +214,14 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 }
 
 - (void) GestureIsRecognized: (NSNotification *)n {
-    NSString* name = n.userInfo[@"closestGestureName"];
-    self.gestureType.stringValue = [name uppercaseString];
+    NSString* name = [n.userInfo[@"closestGestureName"] uppercaseString];
+    self.gestureType.stringValue = name;
+    [_drone processCommand:name];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         [NSThread sleepForTimeInterval:1.0f];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            //Here you returns to main thread.
+//        dispatch_async(dispatch_get_main_queue(), ^{
             self.gestureType.stringValue = @"";
-        });
+//        });
     });
 }
 

@@ -81,6 +81,7 @@
 		5585F19B1ACEE5F100F2B1FD /* vertexTips.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 5585F1961ACEE5F100F2B1FD /* vertexTips.vsh */; };
 		5585F1A71ACEE93800F2B1FD /* libLeap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5585F1A61ACEE93800F2B1FD /* libLeap.dylib */; };
 		5585F1A81ACEE94100F2B1FD /* libLeap.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5585F1A61ACEE93800F2B1FD /* libLeap.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		55AB76AE1AD2D76300E73537 /* DroneController.m in Sources */ = {isa = PBXBuildFile; fileRef = 55AB76AD1AD2D76300E73537 /* DroneController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -196,6 +197,8 @@
 		5585F1951ACEE5F100F2B1FD /* vertexImage.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = vertexImage.vsh; sourceTree = "<group>"; };
 		5585F1961ACEE5F100F2B1FD /* vertexTips.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = vertexTips.vsh; sourceTree = "<group>"; };
 		5585F1A61ACEE93800F2B1FD /* libLeap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libLeap.dylib; sourceTree = "<group>"; };
+		55AB76AC1AD2D76300E73537 /* DroneController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DroneController.h; sourceTree = "<group>"; };
+		55AB76AD1AD2D76300E73537 /* DroneController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DroneController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -321,11 +324,10 @@
 			isa = PBXGroup;
 			children = (
 				5585F1A61ACEE93800F2B1FD /* libLeap.dylib */,
-				552F1AF11AD1CE8B00B4C0F8 /* DeviceController.h */,
-				552F1AF21AD1CE8B00B4C0F8 /* DeviceController.m */,
 				5543287D1AC9D1A7004D1681 /* Cocoa.framework */,
 				5543287B1AC9D199004D1681 /* Quartz.framework */,
 				554328791AC9D18C004D1681 /* OpenGL.framework */,
+				55AB76AB1AD2D6F500E73537 /* Drone */,
 				554328271AC080D6004D1681 /* LeapGestureRecognition */,
 				5543283E1AC080D6004D1681 /* LeapGestureRecognitionTests */,
 				554328261AC080D6004D1681 /* Products */,
@@ -433,6 +435,17 @@
 			name = OpenGLData;
 			sourceTree = "<group>";
 		};
+		55AB76AB1AD2D6F500E73537 /* Drone */ = {
+			isa = PBXGroup;
+			children = (
+				552F1AF11AD1CE8B00B4C0F8 /* DeviceController.h */,
+				552F1AF21AD1CE8B00B4C0F8 /* DeviceController.m */,
+				55AB76AC1AD2D76300E73537 /* DroneController.h */,
+				55AB76AD1AD2D76300E73537 /* DroneController.m */,
+			);
+			name = Drone;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -490,7 +503,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 554328201AC080D6004D1681 /* Build configuration list for PBXProject "LeapGestureRecognition" */;
+			buildConfigurationList = 554328201AC080D6004D1681 /* Build configuration list for PBXProject "DroneGestureController" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -561,6 +574,7 @@
 				5543282C1AC080D6004D1681 /* AppDelegate.m in Sources */,
 				554328781AC9D132004D1681 /* OpenGLUtil.m in Sources */,
 				554328701AC9C75B004D1681 /* RawImageWithTips.m in Sources */,
+				55AB76AE1AD2D76300E73537 /* DroneController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -755,7 +769,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		554328201AC080D6004D1681 /* Build configuration list for PBXProject "LeapGestureRecognition" */ = {
+		554328201AC080D6004D1681 /* Build configuration list for PBXProject "DroneGestureController" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				554328431AC080D6004D1681 /* Debug */,
