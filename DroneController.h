@@ -9,6 +9,8 @@
 
 @interface DroneController : NSObject
 
+@property (nonatomic, strong) DeviceController* device;
+
 -(id) init:(DeviceController*)device;
 -(void) processCommand:(NSString*)cmd;
 

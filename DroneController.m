@@ -20,87 +20,90 @@
 #define HOVER @"HOVER"
 #define EMERGENCY @"EMERGENCY"
 
-@implementation DroneController {
-    DeviceController *_deviceController;
-}
+@implementation DroneController
 
 -(id) init:(DeviceController*)device {
     self = [super init];
     if (self) {
-        _deviceController = device;
+        _device = device;
     }
     return self;
 }
 
 -(void) processCommand:(NSString*)cmd {
-    if ([cmd isEqual: LEFT]) {
-        [self yawLeft];
-    } else if ([cmd isEqual: RIGHT]) {
-        [self yawRight];
-    } else if ([cmd isEqual: FORWARD]) {
-        [self moveForward];
-    } else if ([cmd isEqual: BACKWARD]) {
-        [self moveBackward];
-    } else if ([cmd isEqual: UP]) {
-        [self ascend];
-    } else if ([cmd isEqual: DOWN]) {
-        [self descend];
-    } else if ([cmd isEqual: TAKEOFF]) {
-        [self takeoff];
-    } else if ([cmd isEqual: LAND]) {
-        [self land];
-    } else if ([cmd isEqual: HOVER]) {
-        [self hover];
-    } else if ([cmd isEqual: EMERGENCY]) {
-        [self emergency];
+    if (_device) {
+        if ([cmd isEqual: LEFT]) {
+            [self yawLeft];
+        } else if ([cmd isEqual: RIGHT]) {
+            [self yawRight];
+        } else if ([cmd isEqual: FORWARD]) {
+            [self moveForward];
+        } else if ([cmd isEqual: BACKWARD]) {
+            [self moveBackward];
+        } else if ([cmd isEqual: UP]) {
+            [self ascend];
+        } else if ([cmd isEqual: DOWN]) {
+            [self descend];
+        } else if ([cmd isEqual: TAKEOFF]) {
+            [self takeoff];
+        } else if ([cmd isEqual: LAND]) {
+            [self land];
+        } else if ([cmd isEqual: HOVER]) {
+            [self hover];
+        } else if ([cmd isEqual: EMERGENCY]) {
+            [self emergency];
+        } else {
+            [self hover];
+        }
     } else {
-        [self hover];
+        NSLog(@"Device is nil");
     }
 }
 
 -(void) moveForward {
-    [_deviceController setFlag:1];
-    [_deviceController setPitch:50];
+    [_device setFlag:1];
+    [_device setPitch:50];
 }
 
 -(void) moveBackward {
-    [_deviceController setFlag:1];
-    [_deviceController setPitch:-50];
+    [_device setFlag:1];
+    [_device setPitch:-50];
 }
 
 -(void) yawLeft {
-    [_deviceController setYaw:-50];
+    [_device setYaw:-50];
 }
 
 -(void) yawRight {
-    [_deviceController setYaw:50];
+    [_device setYaw:50];
 }
 
 -(void) ascend {
-    [_deviceController setGaz:50];
+    [_device setGaz:50];
 }
 
 -(void) descend {
-    [_deviceController setGaz:-50];
+    [_device setGaz:-50];
 }
 
 -(void) takeoff {
-    [_deviceController sendTakeoff];
+    [_device sendTakeoff];
 }
 
 -(void) land {
-    [_deviceController sendLanding];
+    [_device sendLanding];
 }
 
 -(void) emergency {
-    [_deviceController sendEmergency];
+    [_device sendEmergency];
 }
 
 -(void) hover {
-    [_deviceController setFlag:0];
-    [_deviceController setRoll:0];
-    [_deviceController setYaw:0];
-    [_deviceController setPitch:0];
+    [_device setFlag:0];
+    [_device setRoll:0];
+    [_device setYaw:0];
+    [_device setPitch:0];
+    [_device setGaz:0];
 }
 
 @end

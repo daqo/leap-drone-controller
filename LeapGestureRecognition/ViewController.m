@@ -18,7 +18,7 @@
 #define MIN_GESTURE_FRAMES 5
 #define MIN_POSE_FRAMES 75
 #define DOWNTIME 0.5
-#define REQUIRED_TRAINING_GESTURE_COUNT 8
+#define REQUIRED_TRAINING_GESTURE_COUNT 10
 #define HIT_THRESHOLD 0.65
 
 
@@ -26,7 +26,7 @@
 {
     LeapController *_leapController;
     DroneController *_drone;
-    BOOL _hovering;
+    BOOL _flying;
     
     int _secondsLeftForTrainingToStart;
     NSTimer* _threeSecondsTimer;
@@ -60,35 +60,12 @@
 {
     [super viewDidAppear];
     
-    _hovering = FALSE;
-    [self.takeoffBt setEnabled:FALSE];
-    [self.landBt setEnabled:FALSE];
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        _deviceController = [[DeviceController alloc] init];
-        [_deviceController setDelegate:self];
-        BOOL connectError = [_deviceController start];
-        
-        NSLog(@"connectError = %d", connectError);
-        
-        if (connectError)
-        {
-            NSLog(@"Problem in connecting to the drone");
-            return;
-        } else {
-            _drone = [[DroneController alloc] init:_deviceController];
-            if (_drone) {
-                self.droneStatusLabel.stringValue = @"Drone: Connected";
-            }
-        }
-    });
+    _flying = FALSE;
+    [self setLabelsForDisconnectedDrone];
 }
 
 - (void) viewDidDisappear:(BOOL)animated
 {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [_deviceController stop];
-    });
     [self unregisterNotifications];
 }
 
@@ -234,7 +211,10 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 - (void) GestureIsRecognized: (NSNotification *)n {
     NSString* name = [n.userInfo[@"closestGestureName"] uppercaseString];
     self.gestureType.stringValue = name;
+    
     [_drone processCommand:name];
+    _flying = TRUE;
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         [NSThread sleepForTimeInterval:1.0f];
 //        dispatch_async(dispatch_get_main_queue(), ^{
@@ -261,8 +241,9 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     
     if (_paused) { return; }
     
-    if ([frame.hands count] == 0 && !_hovering) {
+    if ([frame.hands count] == 0 && _flying) {
         [_drone processCommand:@"HOVER"];
+        _flying = FALSE;
     }
     
     time_t now = (time_t) [[NSDate date] timeIntervalSince1970];
@@ -488,6 +469,7 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 - (void)onDisconnectNetwork:(DeviceController *)deviceController
 {
     NSLog(@"onDisconnect ...");
+    [self setLabelsForDisconnectedDrone];
 }
 
 - (void)onUpdateBattery:(DeviceController *)deviceController batteryLevel:(uint8_t)percent;
@@ -509,24 +491,32 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     dispatch_async(dispatch_get_main_queue(), ^{
         switch (state) {
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
-                _hovering = FALSE;
+                _flying = FALSE;
                 [self.takeoffBt setEnabled:YES];
                 [self.landBt setEnabled:NO];
+                [self.emergencyBt setEnabled:TRUE];
+                NSLog(@"LANDED");
                 break;
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
-                _hovering = TRUE;
+                _flying = FALSE;
                 [self.takeoffBt setEnabled:NO];
                 [self.landBt setEnabled:YES];
+                [self.emergencyBt setEnabled:TRUE];
+                NSLog(@"HOVERING");
                 break;
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
-                _hovering = FALSE;
+                _flying = TRUE;
                 [self.takeoffBt setEnabled:NO];
                 [self.landBt setEnabled:YES];
+                [self.emergencyBt setEnabled:TRUE];
+                NSLog(@"FLYING");
                 break;
             default:
                 // in all other cases, take of and landing are not enabled
                 [self.takeoffBt setEnabled:NO];
                 [self.landBt setEnabled:NO];
+                [self.emergencyBt setEnabled:TRUE];
+                NSLog(@"UNKNOWN");
                 break;
         }
     });
@@ -536,6 +526,48 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 }
 - (IBAction)doLand:(id)sender {
     [_drone processCommand:@"LAND"];
+}
+- (IBAction)doEmergeny:(id)sender {
+    [_drone processCommand:@"EMERGENCY"];
+}
+- (IBAction)initDrone:(id)sender {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        _deviceController = [[DeviceController alloc] init];
+        [_deviceController setDelegate:self];
+        BOOL connectError = [_deviceController start];
+        
+        NSLog(@"connectError = %d", connectError);
+        
+        if (connectError)
+        {
+            NSLog(@"Problem in connecting to the drone");
+            return;
+        } else {
+            _drone = [[DroneController alloc] init:_deviceController];
+            if (_drone) {
+                self.droneStatusLabel.stringValue = @"Drone: Connected";
+            }
+        }
+    });
+    
+    [self.initializeDroneBt setEnabled:FALSE];
+    [self.deinitializeDroneBt setEnabled:TRUE];
+}
+- (IBAction)deinitDrone:(id)sender {
+    [_deviceController stop];
+    [self setLabelsForDisconnectedDrone];
+}
+
+- (void)setLabelsForDisconnectedDrone {
+    _deviceController = nil;
+    _drone.device = nil;
+    [self.initializeDroneBt setEnabled:TRUE];
+    [self.deinitializeDroneBt setEnabled:FALSE];
+    [self.takeoffBt setEnabled:FALSE];
+    [self.landBt setEnabled:FALSE];
+    [self.emergencyBt setEnabled:FALSE];
+    self.droneStatusLabel.stringValue = @"Drone: Disconnected";
+    self.batteryLabel.stringValue = @"Battery: N/A";
 }
 
 @end

@@ -33,6 +33,10 @@
 
 @property (weak) IBOutlet NSButton *takeoffBt;
 @property (weak) IBOutlet NSButton *landBt;
+@property (weak) IBOutlet NSButton *emergencyBt;
+@property (weak) IBOutlet NSButton *initializeDroneBt;
+@property (weak) IBOutlet NSButton *deinitializeDroneBt;
+
 @property (weak) IBOutlet NSTextField *droneStatusLabel;
 
 @end
