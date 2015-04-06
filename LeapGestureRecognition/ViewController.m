@@ -26,6 +26,7 @@
 {
     LeapController *_leapController;
     DroneController *_drone;
+    BOOL _hovering;
     
     int _secondsLeftForTrainingToStart;
     NSTimer* _threeSecondsTimer;
@@ -59,6 +60,7 @@
 {
     [super viewDidAppear];
     
+    _hovering = FALSE;
     [self.takeoffBt setEnabled:FALSE];
     [self.landBt setEnabled:FALSE];
     
@@ -87,11 +89,10 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         [_deviceController stop];
     });
+    [self unregisterNotifications];
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
+- (void)registerNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recordingIsStarted:) name:@"started-recording" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(recordingIsStopped:) name:@"stopped-recording" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(gestureIsDetected:) name:@"gesture-detected" object:nil];
@@ -100,6 +101,23 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(trainingGestureIsSaved:) name:@"training-gesture-saved" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(GestureIsRecognized:) name:@"gesture-recognized" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(GestureIsUnknown:) name:@"gesture-unknown" object:nil];
+}
+
+- (void)unregisterNotifications {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"started-recording" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"stopped-recording" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"gesture-detected" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"training-started" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"training-complete" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"training-gesture-saved" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"gesture-recognized" object: nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name: @"gesture-unknown" object: nil];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    [self registerNotifications];
     
     _leapController = [[LeapController alloc] init];
     [_leapController addListener:self];
@@ -242,6 +260,11 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     self.testLabel.stringValue = [[NSString alloc] initWithFormat:@"%lld", [frame id]];
     
     if (_paused) { return; }
+    
+    if ([frame.hands count] == 0 && !_hovering) {
+        [_drone processCommand:@"HOVER"];
+    }
+    
     time_t now = (time_t) [[NSDate date] timeIntervalSince1970];
     if (now - _lastHit < DOWNTIME) { return; }
     
@@ -486,11 +509,17 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     dispatch_async(dispatch_get_main_queue(), ^{
         switch (state) {
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED:
+                _hovering = FALSE;
                 [self.takeoffBt setEnabled:YES];
                 [self.landBt setEnabled:NO];
                 break;
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING:
+                _hovering = TRUE;
+                [self.takeoffBt setEnabled:NO];
+                [self.landBt setEnabled:YES];
+                break;
             case ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING:
+                _hovering = FALSE;
                 [self.takeoffBt setEnabled:NO];
                 [self.landBt setEnabled:YES];
                 break;
@@ -501,6 +530,12 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
                 break;
         }
     });
+}
+- (IBAction)doTakeOff:(id)sender {
+    [_drone processCommand:@"TAKEOFF"];
+}
+- (IBAction)doLand:(id)sender {
+    [_drone processCommand:@"LAND"];
 }
 
 @end
