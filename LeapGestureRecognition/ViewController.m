@@ -14,12 +14,12 @@
 #import "DroneController.h"
 
 #define MIN_RECORDING_VELOCITY 250
-#define MAX_RECORDING_VELOCITY 30
+#define MAX_RECORDING_VELOCITY 50
 #define MIN_GESTURE_FRAMES 5
-#define MIN_POSE_FRAMES 75
+#define MIN_POSE_FRAMES 25
 #define DOWNTIME 0.5
-#define REQUIRED_TRAINING_GESTURE_COUNT 10
-#define HIT_THRESHOLD 0.65
+#define REQUIRED_TRAINING_GESTURE_COUNT 30
+#define HIT_THRESHOLD 0.75
 
 
 @implementation ViewController
@@ -27,6 +27,7 @@
     LeapController *_leapController;
     DroneController *_drone;
     BOOL _flying;
+    NSSpeechSynthesizer *_text2speech;
     
     int _secondsLeftForTrainingToStart;
     NSTimer* _threeSecondsTimer;
@@ -44,6 +45,9 @@
     NSMutableDictionary* _gestures;
     NSMutableDictionary* _poses;
     
+    NSMutableDictionary* _rawGestures;
+    NSMutableDictionary* _rawPoses;
+    
     GeometricTemplateMatcher* _learner;
 }
 
@@ -60,6 +64,7 @@
 {
     [super viewDidAppear];
     
+    _text2speech = [[NSSpeechSynthesizer alloc] initWithVoice:@"com.apple.speech.synthesis.voice.Alex"];
     _flying = FALSE;
     [self setLabelsForDisconnectedDrone];
 }
@@ -103,7 +108,9 @@
     _gesture = [NSMutableArray array];
     _secondsLeftForTrainingToStart = 4;
     _gestures = [NSMutableDictionary dictionary];
+    _rawGestures = [NSMutableDictionary dictionary];
     _poses = [NSMutableDictionary dictionary];
+    _rawPoses = [NSMutableDictionary dictionary];
     _learner = [[GeometricTemplateMatcher alloc] init];
 }
 
@@ -211,7 +218,7 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 - (void) GestureIsRecognized: (NSNotification *)n {
     NSString* name = [n.userInfo[@"closestGestureName"] uppercaseString];
     self.gestureType.stringValue = name;
-    
+    [_text2speech startSpeakingString:name];
     [_drone processCommand:name];
     _flying = TRUE;
     
@@ -343,6 +350,10 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     if ([dataAssociatedToCurrentGesture count] == REQUIRED_TRAINING_GESTURE_COUNT) {
         [_gestures setObject:dataAssociatedToCurrentGesture forKey:gestureName]; //DAVE use distribute method here!!
         [_poses setObject:[NSNumber numberWithBool:isPose] forKey:gestureName];
+        
+        [_rawGestures setObject:dataAssociatedToCurrentGesture forKey:gestureName];
+        [_rawPoses setObject:[NSNumber numberWithBool:isPose] forKey:gestureName];
+        
         [self trainAlgorithm:gestureName withTrainingData:dataAssociatedToCurrentGesture];
         _trainingGestureName = nil;
         
@@ -568,6 +579,45 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     [self.emergencyBt setEnabled:FALSE];
     self.droneStatusLabel.stringValue = @"Drone: Disconnected";
     self.batteryLabel.stringValue = @"Battery: N/A";
+}
+
+- (BOOL)saveTrainingSet {
+    BOOL res1 = [_rawGestures writeToFile:@"/Users/dave/Desktop/training_set_gestures.data" atomically:NO];
+    BOOL res2 = [_rawPoses writeToFile:@"/Users/dave/Desktop/training_set_poses.data" atomically:NO];
+    if (res1 && res2)
+        NSLog(@"Files saved!");
+    return res1;
+}
+- (BOOL)loadTrainingSet {
+    NSMutableDictionary* oldGestures = _gestures;
+    
+    NSMutableDictionary* otherGestures = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/dave/Desktop/training_set_gestures.data"];
+    _poses = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/dave/Desktop/training_set_poses.data"];
+    
+    for (NSString* gestureName in [otherGestures allKeys]) {
+        NSMutableArray* dataAssociatedToOtherTrainingSet = [otherGestures objectForKey:gestureName];
+        [_gestures setObject:dataAssociatedToOtherTrainingSet forKey:gestureName];
+        [self trainAlgorithm:gestureName withTrainingData:dataAssociatedToOtherTrainingSet];
+        NSMutableArray* arr = [oldGestures valueForKey:gestureName];
+        [arr addObjectsFromArray:[_gestures valueForKey:gestureName]];
+        [_gestures setObject:arr forKey:gestureName];
+        [self trainAlgorithm:gestureName withTrainingData:dataAssociatedToOtherTrainingSet];
+        
+        _trainingGestureName = nil;
+        NSDictionary * userInfo = @{ @"gestureName": gestureName, @"trainingGesture": arr };
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"training-complete" object:self userInfo:userInfo];
+    }
+    
+    NSLog(@"File loaded");
+    [self resumeFrameTracking];
+    return TRUE;
+}
+
+- (IBAction)saveFile:(id)sender {
+    [self saveTrainingSet];
+}
+- (IBAction)loadFile:(id)sender {
+    [self loadTrainingSet];
 }
 
 @end
