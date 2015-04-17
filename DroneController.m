@@ -62,28 +62,56 @@
 
 -(void) moveForward {
     [_device setFlag:1];
-    [_device setPitch:50];
+    [_device setPitch:70];
+    
+    [_device setRoll:0];
+    [_device setYaw:0];
+    [_device setGaz:0];
 }
 
 -(void) moveBackward {
     [_device setFlag:1];
-    [_device setPitch:-50];
+    [_device setPitch:-70];
+    
+    [_device setRoll:0];
+    [_device setYaw:0];
+    [_device setGaz:0];
 }
 
 -(void) yawLeft {
-    [_device setYaw:-50];
+    [_device setFlag:0];
+    [_device setYaw:-70];
+    
+    [_device setRoll:0];
+    [_device setPitch:0];
+    [_device setGaz:0];
 }
 
 -(void) yawRight {
-    [_device setYaw:50];
+    [_device setFlag:0];
+    [_device setYaw:70];
+    
+    [_device setRoll:0];
+    [_device setPitch:0];
+    [_device setGaz:0];
 }
 
 -(void) ascend {
+    [_device setFlag:0];
     [_device setGaz:50];
+    
+    [_device setYaw:0];
+    [_device setRoll:0];
+    [_device setPitch:0];
 }
 
 -(void) descend {
+    [_device setFlag:0];
     [_device setGaz:-50];
+    
+    [_device setYaw:0];
+    [_device setRoll:0];
+    [_device setPitch:0];
 }
 
 -(void) takeoff {

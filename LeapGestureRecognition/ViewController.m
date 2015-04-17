@@ -490,6 +490,9 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
     // update battery label on the UI thread
     dispatch_async(dispatch_get_main_queue(), ^{
         NSString *text = [[NSString alloc] initWithFormat:@"Battery: %d%%", percent];
+        if (percent < 20) {
+                [_text2speech startSpeakingString:@"Battery low"];
+        }
         self.batteryLabel.stringValue = text;
     });
 }
@@ -524,6 +527,7 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
                 break;
             default:
                 // in all other cases, take of and landing are not enabled
+                _flying = TRUE;
                 [self.takeoffBt setEnabled:NO];
                 [self.landBt setEnabled:NO];
                 [self.emergencyBt setEnabled:TRUE];
@@ -582,8 +586,8 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 }
 
 - (BOOL)saveTrainingSet {
-    BOOL res1 = [_rawGestures writeToFile:@"/Users/dave/Desktop/training_set_gestures.data" atomically:NO];
-    BOOL res2 = [_rawPoses writeToFile:@"/Users/dave/Desktop/training_set_poses.data" atomically:NO];
+    BOOL res1 = [_rawGestures writeToFile:@"/Users/kirthisamson/Desktop/training_set_gestures.data" atomically:NO];
+    BOOL res2 = [_rawPoses writeToFile:@"/Users/kirthisamson/Desktop/training_set_poses.data" atomically:NO];
     if (res1 && res2)
         NSLog(@"Files saved!");
     return res1;
@@ -591,8 +595,8 @@ unsigned long numberOfTrainingsRequired(unsigned long currentNumber) {
 - (BOOL)loadTrainingSet {
     NSMutableDictionary* oldGestures = _gestures;
     
-    NSMutableDictionary* otherGestures = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/dave/Desktop/training_set_gestures.data"];
-    _poses = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/dave/Desktop/training_set_poses.data"];
+    NSMutableDictionary* otherGestures = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/kirthisamson/Desktop/training_set_gestures.data"];
+    _poses = [NSMutableDictionary dictionaryWithContentsOfFile:@"/Users/kirthisamson/Desktop/training_set_poses.data"];
     
     for (NSString* gestureName in [otherGestures allKeys]) {
         NSMutableArray* dataAssociatedToOtherTrainingSet = [otherGestures objectForKey:gestureName];
