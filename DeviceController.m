@@ -281,6 +281,16 @@ static const size_t NUM_OF_COMMANDS_BUFFER_IDS = sizeof(COMMAND_BUFFER_IDS) / si
         failed = ![self getInitialStates];
     }
     
+    if (!failed)
+    {
+        failed = ![self setHullProtection:TRUE];
+    }
+    
+    if (!failed)
+    {
+        failed = ![self sendPilotingFlatTrim];
+    }
+    
     return failed;
 }
 
@@ -700,6 +710,55 @@ eARNETWORK_MANAGER_CALLBACK_RETURN arnetworkCmdCallback(int buffer_id, uint8_t *
 }
 
 #pragma mark sending functions
+- (BOOL)setHullProtection:(BOOL)present
+{
+    BOOL sentStatus = YES;
+    u_int8_t cmdBuffer[128];
+    int32_t cmdSize = 0;
+    eARCOMMANDS_GENERATOR_ERROR cmdError;
+    eARNETWORK_ERROR netError = ARNETWORK_ERROR;
+    
+    // Send time command
+    cmdError = ARCOMMANDS_Generator_GenerateARDrone3SpeedSettingsHullProtection(cmdBuffer, sizeof(cmdBuffer), &cmdSize, (present ? 1 : 0));
+    if (cmdError == ARCOMMANDS_GENERATOR_OK)
+    {
+        // The commands sent by event should be sent to an buffer acknowledged  ; here RS_NET_C2D_ACK
+        netError = ARNETWORK_Manager_SendData(_netManager, BD_NET_C2D_ACK, cmdBuffer, cmdSize, NULL, &(arnetworkCmdCallback), 1);
+    }
+    
+    if ((cmdError != ARCOMMANDS_GENERATOR_OK) || (netError != ARNETWORK_OK))
+    {
+        sentStatus = NO;
+    }
+    
+    return sentStatus;
+    
+}
+
+- (BOOL)sendPilotingFlatTrim
+{
+    BOOL sentStatus = YES;
+    u_int8_t cmdBuffer[128];
+    int32_t cmdSize = 0;
+    eARCOMMANDS_GENERATOR_ERROR cmdError;
+    eARNETWORK_ERROR netError = ARNETWORK_ERROR;
+    
+    // Send time command
+    cmdError = ARCOMMANDS_Generator_GenerateARDrone3PilotingFlatTrim(cmdBuffer, sizeof(cmdBuffer), &cmdSize);
+    if (cmdError == ARCOMMANDS_GENERATOR_OK)
+    {
+        // The commands sent by event should be sent to an buffer acknowledged  ; here RS_NET_C2D_ACK
+        netError = ARNETWORK_Manager_SendData(_netManager, BD_NET_C2D_ACK, cmdBuffer, cmdSize, NULL, &(arnetworkCmdCallback), 1);
+    }
+    
+    if ((cmdError != ARCOMMANDS_GENERATOR_OK) || (netError != ARNETWORK_OK))
+    {
+        sentStatus = NO;
+    }
+    
+    return sentStatus;
+}
+
 - (BOOL)getInitialSettings
 {
     BOOL sentStatus = YES;
